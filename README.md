@@ -1,102 +1,109 @@
-# README - Sistema de Clasificación de Residuos con Redes Neuronales
+# 🗑️ Clasificador de Residuos con Redes Neuronales Convolucionales (CNN)
 
-## 📌 Descripción
+## 🧠 Descripción
+Este proyecto implementa un **sistema de clasificación automática de residuos** utilizando una red neuronal convolucional (CNN) con TensorFlow/Keras. La inteligencia artificial puede reconocer y clasificar 6 tipos de materiales:
 
-Este proyecto implementa un clasificador de imágenes de residuos (cartón, vidrio, metal, papel, plástico y basura general) utilizando una red neuronal convolucional (CNN) con TensorFlow/Keras. El sistema puede entrenarse con un conjunto de imágenes etiquetadas y luego usarse para clasificar nuevas imágenes de residuos.
+- Cartón (cardboard)
+- Vidrio (glass)
+- Metal (metal)
+- Papel (paper)
+- Plástico (plastic)
+- Basura general (trash)
 
-## 🗂️ Estructura del Proyecto
-
+## 🏗️ Estructura del Proyecto
 ```
 waste-classifier/
 │
-├── data/                   # Directorio con imágenes de entrenamiento (subcarpetas por clase)
-│   ├── cardboard/
-│   ├── glass/
-│   ├── metal/
-│   ├── paper/
-│   ├── plastic/
-│   └── trash/
+├── data/                   # Imágenes para entrenamiento (organizadas por clase)
+│   ├── cardboard/          # Ej: cajas, envases de cartón
+│   ├── glass/              # Ej: botellas, frascos
+│   ├── metal/              # Ej: latas, tapas
+│   ├── paper/              # Ej: periódicos, revistas
+│   ├── plastic/            # Ej: botellas, envases
+│   └── trash/              # Residuos no reciclables
 │
-├── prueba/                 # Directorio con imágenes para clasificar
+├── prueba/                 # Imágenes para probar el modelo
 │   ├── residuo1.jpg
 │   ├── residuo2.jpg
-│   └── 
+│   └── ...
 │
-├── main.py     # Código principal del clasificador
-├── waste_classifier.keras  # Modelo entrenado (se genera al ejecutar)
-├── confusion_matrix.png    # Matriz de confusión (se genera al entrenar)
-└── training_history.png    # Gráficos de entrenamiento (se generan al entrenar)
+├── main.py                 # Programa principal
+├── waste_classifier.keras  # Modelo entrenado (se genera automáticamente)
+├── confusion_matrix.png    # Resultados del modelo
+└── training_history.png    # Evolución del aprendizaje
 ```
 
-## 📋 Requisitos
-
+## ⚙️ Requisitos Técnicos
 - Python 3.8+
-- Bibliotecas requeridas (instalar con `pip install -r requirements.txt`):
-  ```
-  tensorflow>=2.0
-  numpy
-  pillow
-  opencv-python
-  scikit-learn
-  matplotlib
-  seaborn
+- Bibliotecas esenciales:
+  ```bash
+  pip install tensorflow numpy pillow opencv-python scikit-learn matplotlib seaborn
   ```
 
-## 🚀 Cómo Usar
+## 🚀 Cómo Usar el Clasificador
 
-1. **Preparar los datos**:
-   - Organiza tus imágenes de entrenamiento en subcarpetas dentro de `./data/`, una carpeta por cada clase (cardboard, glass, metal, paper, plastic, trash)
+### 1. Preparación de Datos
+Organiza tus imágenes de entrenamiento en la carpeta `./data/` con subcarpetas para cada categoría.
 
-2. **Ejecutar el programa**:
-   ```
-   python waste_classifier.py
-   ```
+### 2. Ejecución del Programa
+```bash
+python main.py
+```
 
-3. **Menú de opciones**:
-   ```
-   --- Sistema de Clasificación de Residuos ---
-   1. Entrenar modelo con imágenes en ./data
-   2. Clasificar imágenes en ./prueba
-   3. Salir
-   ```
+### 3. Menú Interactivo
+```
+--- SISTEMA DE CLASIFICACIÓN INTELIGENTE ---
+1. Entrenar el modelo con imágenes de ./data
+2. Clasificar imágenes nuevas de ./prueba
+3. Salir
+```
 
-4. **Entrenar el modelo (Opción 1)**:
-   - El programa cargará las imágenes, entrenará el modelo y guardará:
-     - Modelo entrenado (`waste_classifier.keras`)
-     - Matriz de confusión (`confusion_matrix.png`)
-     - Gráficos de entrenamiento (`training_history.png`)
+### 🔧 Entrenamiento del Modelo (Opción 1)
+- Procesa automáticamente todas las imágenes
+- Crea un modelo de inteligencia artificial
+- Genera reportes visuales del rendimiento
+- Guarda el modelo entrenado para uso futuro
 
-5. **Clasificar imágenes (Opción 2)**:
-   - Coloca las imágenes a clasificar en `./prueba/`
-   - El modelo mostrará cada imagen con su predicción y nivel de confianza
+### 🔎 Clasificación (Opción 2)
+- Abre una interfaz gráfica amigable
+- Selecciona cualquier imagen para analizar
+- Muestra resultados con porcentaje de confianza
 
-## 🧠 Arquitectura del Modelo
+## 🧠 Arquitectura de la Red Neuronal
+El modelo utiliza una **CNN profunda** con:
 
-El clasificador utiliza una CNN con la siguiente estructura:
+| Capa | Tipo | Detalles |
+|------|------|----------|
+| 1 | Convolucional | 32 filtros (3x3) + ReLU |
+| 2 | Max Pooling | Reducción 2x2 |
+| 3 | Convolucional | 64 filtros (3x3) + ReLU |
+| 4 | Max Pooling | Reducción 2x2 |
+| 5 | Convolucional | 128 filtros (3x3) + ReLU |
+| 6 | Max Pooling | Reducción 2x2 |
+| 7 | Flatten | Aplanamiento |
+| 8 | Densa | 128 neuronas + ReLU |
+| 9 | Dropout | Regularización (50%) |
+| 10 | Densa | 6 neuronas (salida) + Softmax |
 
-1. Capa Conv2D (32 filtros, kernel 3x3, ReLU)
-2. MaxPooling2D (2x2)
-3. Capa Conv2D (64 filtros, kernel 3x3, ReLU)
-4. MaxPooling2D (2x2)
-5. Capa Conv2D (128 filtros, kernel 3x3, ReLU)
-6. MaxPooling2D (2x2)
-7. Flatten
-8. Dense (128 neuronas, ReLU)
-9. Dropout (0.5 para regularización)
-10. Dense (6 neuronas, softmax - una por clase)
+## 📊 Evaluación del Modelo
+El sistema genera automáticamente:
+- 📈 Gráficos de precisión y pérdida
+- 🎯 Matriz de confusión detallada
+- 📝 Reporte de métricas por clase:
+  - Precisión (accuracy)
+  - Sensibilidad (recall)
+  - Puntuación F1
 
-## 📊 Métricas de Evaluación
+## 💡 Recomendaciones
+- Usa imágenes variadas (diferentes ángulos, iluminación)
+- Mínimo 100-200 imágenes por categoría para buen rendimiento
+- Formatos soportados: JPG, PNG, etc.
+- Tamaño ideal: mínimo 100x100 píxeles
 
-Al finalizar el entrenamiento, el programa muestra:
-- Precisión en el conjunto de prueba
-- Reporte de clasificación (precision, recall, f1-score por clase)
-- Matriz de confusión visual
-- Gráficos de precisión y pérdida durante el entrenamiento
+## 🛠️ Tecnologías Clave
+- **TensorFlow/Keras** para la red neuronal
+- **OpenCV** para procesamiento de imágenes
+- **Scikit-learn** para evaluación
+- **Matplotlib/Seaborn** para visualización
 
-## 📝 Notas
-
-- Las imágenes deben ser en color (RGB) y se redimensionarán a 100x100 píxeles
-- El modelo normaliza los valores de píxeles al rango [0, 1]
-- Para mejores resultados, se recomienda tener al menos 100-200 imágenes por clase
-
-## 📄 El proyecto fue realizado por Luis Alvarez para la asignatura de Inteligencia Artificial 
+📌 *Desarrollado por Luis Alvarez para aplicaciones de Inteligencia Artificial*
