@@ -1,12 +1,14 @@
 import os
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageTk
 import tensorflow as tf
 import cv2
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
+import tkinter as tk
+from tkinter import filedialog, messagebox
 
 class WasteClassifier:
     def __init__(self):
@@ -138,55 +140,67 @@ class WasteClassifier:
         plt.savefig('training_history.png')
         plt.show()
     
-    def classify_images_in_folder(self, folder_path='./prueba'):
-        if not os.path.exists(folder_path):
-            print(f"\nError: No se encontró la carpeta '{folder_path}'")
-            return
-        
-        if self.model is None:
-            try:
-                self.model = tf.keras.models.load_model('waste_classifier.keras')
-                print("\nModelo cargado desde 'waste_classifier.keras'")
-            except:
-                print("\nError: Modelo no encontrado. Entrena el modelo primero (Opción 1).")
-                return
-        
-        print(f"\nClasificando imágenes en '{folder_path}':")
-        
-        for image_name in os.listdir(folder_path):
-            image_path = os.path.join(folder_path, image_name)
+    def classify_image(self, image_path):
+        try:
+            # Preprocesamiento de la imagen
+            image = Image.open(image_path).convert('RGB')
+            image = image.resize(self.image_size)
+            image_array = np.array(image) / 255.0
+            image_array = np.expand_dims(image_array, axis=0)
             
-            try:
-                # Preprocesamiento de la imagen
-                image = Image.open(image_path).convert('RGB')
-                image = image.resize(self.image_size)
-                image_array = np.array(image) / 255.0
-                image_array = np.expand_dims(image_array, axis=0)
-                
-                # Predicción
-                prediction = self.model.predict(image_array)
-                class_id = np.argmax(prediction)
-                confidence = np.max(prediction)
-                class_name = self.class_names[class_id]
-                
-                # Mostrar resultados en consola
-                print(f"\nImagen: {image_name}")
-                print(f"Clase predicha: {class_name}")
-                print(f"Confianza: {confidence:.2%}")
-                
-                # Mostrar imagen con la predicción
-                img_display = cv2.imread(image_path)
-                if img_display is not None:
-                    text = f"{class_name} ({confidence:.2%})"
-                    cv2.putText(img_display, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                    cv2.imshow('Clasificación de Residuo', img_display)
-                    cv2.waitKey(2000)  # Mostrar cada imagen por 2 segundos
-                    cv2.destroyAllWindows()
-                else:
-                    print(f"No se pudo mostrar la imagen {image_name}")
-                    
-            except Exception as e:
-                print(f"\nError al procesar {image_name}: {str(e)}")
+            # Predicción
+            prediction = self.model.predict(image_array)
+            class_id = np.argmax(prediction)
+            confidence = np.max(prediction)
+            class_name = self.class_names[class_id]
+            
+            return class_name, confidence
+            
+        except Exception as e:
+            print(f"\nError al procesar la imagen: {str(e)}")
+            return None, None
+
+def open_classification_window(classifier):
+    root = tk.Tk()
+    root.title("Clasificador de Residuos")
+    root.geometry("400x300")
+    
+    def load_and_classify():
+        file_path = filedialog.askopenfilename()
+        if not file_path:
+            return
+            
+        try:
+            # Cargar y mostrar imagen
+            img = Image.open(file_path)
+            img.thumbnail((200, 200))
+            img_tk = ImageTk.PhotoImage(img)
+            image_label.config(image=img_tk)
+            image_label.image = img_tk
+            
+            # Clasificar imagen
+            class_name, confidence = classifier.classify_image(file_path)
+            if class_name and confidence:
+                result_label.config(
+                    text=f"Clase: {class_name}\nConfianza: {confidence:.2%}"
+                )
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"No se pudo cargar la imagen: {str(e)}")
+    
+    # Widgets de la interfaz
+    tk.Label(root, text="Clasificación de Residuos", font=('Arial', 16)).pack(pady=10)
+    
+    image_label = tk.Label(root)
+    image_label.pack(pady=10)
+    
+    result_label = tk.Label(root, text="", font=('Arial', 12))
+    result_label.pack(pady=10)
+    
+    tk.Button(root, text="Cargar Imagen", command=load_and_classify).pack(pady=10)
+    tk.Button(root, text="Cerrar", command=root.destroy).pack(pady=10)
+    
+    root.mainloop()
 
 def main():
     classifier = WasteClassifier()
@@ -194,7 +208,7 @@ def main():
     while True:
         print("\n--- Sistema de Clasificación de Residuos ---")
         print("1. Entrenar modelo con imágenes en ./data")
-        print("2. Clasificar imágenes en ./prueba")
+        print("2. Clasificar imagen (interfaz gráfica)")
         print("3. Salir")
         
         choice = input("Selecciona una opción: ")
@@ -208,7 +222,15 @@ def main():
                 print(f"\nError durante el entrenamiento: {e}")
                 
         elif choice == '2':
-            classifier.classify_images_in_folder()
+            if classifier.model is None:
+                try:
+                    classifier.model = tf.keras.models.load_model('waste_classifier.keras')
+                    print("\nModelo cargado desde 'waste_classifier.keras'")
+                except:
+                    print("\nError: Modelo no encontrado. Entrena el modelo primero (Opción 1).")
+                    continue
+            
+            open_classification_window(classifier)
             
         elif choice == '3':
             print("\nSaliendo del programa...")
